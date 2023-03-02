@@ -17,7 +17,7 @@ class CartManager {
 
   async getIDs() {
     const carts = await this.getCarts();
-    const ids = products.map((el) => el.id);
+    const ids = await carts.map((el) => el.id);
     const mayorID = Math.max(...ids);
 
     if (mayorID === -Infinity) {
@@ -29,7 +29,7 @@ class CartManager {
 
   async addCart() {
     try {
-      const newId = await this.getIDs();
+      let newId = await this.getIDs();
       const carts = await this.getCarts();
       const newCart = { id: newId, products: [] };
       const cartsAdd = [...carts, newCart];
@@ -52,36 +52,26 @@ class CartManager {
 
   async addProductToCart(idCart, idProduct) {
     const carts = await this.getCarts();
-    const cartId = await this.getCartById(idCart);
-    const prodCart = await cartId.products.find((el) => el.id === idProduct);
-
-    if (!prodCart) {
-      cartId.products = [
-        ...cartId.products,
-        {
-          id: idProduct,
-          quantity: 1,
-        },
-      ];
-    } else {
-      cartId.products = [
-        ...cartId.products,
-        {
-          id: idProduct,
-          quantity: (prodCart.quantity += 1),
-        },
-      ];
-    }
-    const cartUpdate = await carts.map((el) => {
-      if (el.id === idCart) {
-        return {
-          ...cartId,
-        };
-      }
-      return el;
+    const cartIndex = await carts.findIndex((el) => {
+      el.id === idCart;
     });
 
-    await fs.promises.writeFile(this.#path, JSON.stringify(cartUpdate));
+    if (cartIndex === -1) {
+      throw new Error("Not found");
+    }
+
+    const cart = carts[cartIndex];
+    const productIndex = cart.products.findIndex((el) => el.id === idProduct);
+
+    if (productIndex === -1) {
+      cart.products.push({ id: idProduct, quantity: 1 });
+    } else {
+      cart.products[productIndex].quantity += 1;
+    }
+
+    carts[cartIndex] = cart;
+
+    await fs.promises.writeFile(this.#path, JSON.stringify(carts));
   }
 }
 export default CartManager;

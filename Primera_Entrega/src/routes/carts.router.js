@@ -8,6 +8,15 @@ const cartsRouter = Router();
 //MIDDLEWARES
 cartsRouter.use(json());
 
+cartsRouter.post("/", async (req, res) => {
+  try {
+    await cartManager.addCart();
+    res.status(200).send("Cart created");
+  } catch (error) {
+    res.status(404).send({ error });
+  }
+});
+
 cartsRouter.get("/:cid", async (req, res) => {
   try {
     const cid = Number(req.params.cid);
@@ -18,4 +27,17 @@ cartsRouter.get("/:cid", async (req, res) => {
   }
 });
 
-cartsRouter
+cartsRouter.post("/:cid/product/:pid", async (req, res) => {
+  try {
+    const cid = Number(req.params.cid);
+    const pid = Number(req.params.pid);
+    const product = await manager.getProductById(pid);
+    await cartManager.addProductToCart(cid, product.id);
+
+    res.status(200).send(await cartManager.getCartById(cid));
+  } catch (error) {
+    res.status(404).send({ error });
+  }
+});
+
+export default cartsRouter;
