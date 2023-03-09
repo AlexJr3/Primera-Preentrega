@@ -48,7 +48,7 @@ productsRouter.post("/", async (req, res) => {
       status = true,
       category,
     } = req.body;
-    await manager.addProduct(
+    const newProduct = await manager.addProduct(
       title,
       description,
       parseInt(price),
@@ -59,7 +59,7 @@ productsRouter.post("/", async (req, res) => {
       category
     );
 
-    res.status(200).send(req.body);
+    res.status(200).send(newProduct);
   } catch (error) {
     res.status(404).send({ error });
   }
